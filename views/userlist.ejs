@@ -1,0 +1,37 @@
+<!-- vabout.ejs -->
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>localhost stuff </title>
+
+    <!-- Bootstrap -->
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+
+  </head>
+	<body class="container">
+
+    <main>
+      <div class="container" style="border: solid 1px black;border-radius: 10px">
+      <div class = "row">
+      	<div class="col-md-4">Email</div>
+      	<div class="col-md-4">Timestamp</div>
+      </div>
+      
+      <% for (var i=0; i<users.length; i++) { %>
+				<div class="row">
+					<div class="col-md-4"><%=users[i].email%></div>
+					<div class="col-md-4"><%=users[i].created%></div>
+				</div>
+			<% }%>  
+    </main>
+
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    
+	</body>
+</html>

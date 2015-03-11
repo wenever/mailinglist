@@ -8,7 +8,7 @@ var ejs = require('ejs');
 var mailer = require("./mailer.js");
 
 var mandrill = require('mandrill-api/mandrill');
-var mandrill_client = new mandrill.Mandrill('gtnd7S2itCPJvJf101QcuA');
+var mandrill_client = new mandrill.Mandrill("MANDRILL_API");
 var db;
 
 app.use(express.static(__dirname + '/views'));
