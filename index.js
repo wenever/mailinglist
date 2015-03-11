@@ -4,15 +4,33 @@ var pg = require("pg");
 var port = process.env["PORT"];
 var bodyParser = require('body-parser');
 var conString = process.env["DATABASE_URL"];
-var db; 
+var ejs = require('ejs');
+var mailer = require("./mailer.js");
+
+var mandrill = require('mandrill-api/mandrill');
+var mandrill_client = new mandrill.Mandrill('gtnd7S2itCPJvJf101QcuA');
+var db;
 
 app.use(express.static(__dirname + '/views'));
 app.use(express.static(__dirname + '/static'));
+app.set('view engine', 'ejs');
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
+var cron = require('cron');
+var cronJob = cron.job("0 */1 * * * *", function(){
+    mailer(db);
+    console.info('cron job completed');
+}); 
+cronJob.start();
+
 pg.connect(conString, function(err, client) {
-	db = client;
+	  db = client;
+	  if (err) {
+	    console.log(err);
+	  } else {
+	  	mailer(client);
+	  }
 })
 
 //logging middleware
@@ -25,12 +43,19 @@ app.get("/", function (request, response) {
 });
 
 app.get("/users", function(request, response) {
-	db.query("SELECT email FROM users", function (err, results) {
+	db.query("SELECT * FROM users", function (err, results) {
 		if (err){
 			response.status(500).send(err);
 		} else {
-			console.log(db);
-			response.send(results.rows);
+			console.log(results.rows);
+			response.render("userlist", 
+				{"users": results.rows}, function(err, html){
+					if (err){
+						console.log(err);
+					}
+				console.log(html);
+				response.send(html);
+			});
 		}
 	});
 });
@@ -40,23 +65,25 @@ app.post("/submit", function (request, response, next) {
 	console.log(request.body);
 	var emailAddress = request.body.email;
 	if (isValidEmailAddress(emailAddress)){
-			db.query("INSERT INTO users (email, last_email_sent) VALUES ($1, $2)", 
-				[emailAddress, null], function(err, result) {
+			db.query("INSERT INTO users (email, last_email_sent, sequence) VALUES ($1, null, 'Q1')", 
+				[emailAddress], function(err, result) {
 					if (err){
-						res.status(500).sent(err);
+						response.status(500).send(err);
 					}
 					else {
-						res.send(result);
+						console.log(result);
+						response.send("inserted " + emailAddress);
 					}
 
 			});
 	}
-	response.end("Invalid email address!");
+	else {
+		response.end("Invalid email address!");
+	}
 });
 
 function isValidEmailAddress(email){
-	var regex = /^[\w+.]+@[a-z0-9\-.]+\.[a-z]{2,6}+$/;
- 	return regex.test(email);
+	return true;
 }
 
 app.listen(port);
